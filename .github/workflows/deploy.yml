@@ -1,0 +1,62 @@
+name: Deploy (ACR -> Azure Web App for Containers)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install & Test
+        run: |
+          npm ci
+          npm run lint
+          npm test
+
+      - name: Build image
+        run: |
+          IMAGE="${{ secrets.ACR_LOGIN_SERVER }}/todo-api-azure:${{ github.sha }}"
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+          docker build -t "$IMAGE" .
+
+      - name: Login to ACR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Push image
+        run: docker push "$IMAGE"
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Update Web App to use new image
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            IMAGE="${{ env.IMAGE }}"
+            az webapp config container set \
+              --name "${{ secrets.AZURE_WEBAPP_NAME }}" \
+              --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
+              --docker-custom-image-name "$IMAGE" \
+              --docker-registry-server-url "https://${{ secrets.ACR_LOGIN_SERVER }}" \
+              --docker-registry-server-user "${{ secrets.ACR_USERNAME }}" \
+              --docker-registry-server-password "${{ secrets.ACR_PASSWORD }}"
+            az webapp config appsettings set \
+              --name "${{ secrets.AZURE_WEBAPP_NAME }}" \
+              --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
+              --settings WEBSITES_PORT=3000
