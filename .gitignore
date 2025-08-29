@@ -1,0 +1,15 @@
+# Node
+node_modules
+npm-debug.log*
+.yarn/*
+.pnpm-store
+coverage
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+
+# Env / local overrides
+.env
+.env.*.local
