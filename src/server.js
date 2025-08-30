@@ -20,7 +20,7 @@ app.use(healthRouter);
 app.use('/tasks', tasksRouter);
 
 // Global error handler: never crash; return JSON
-app.use((err, req, res, next) => {
+app.use((err, _req, res, _next) => {
     console.error('Unhandled error:', err && err.stack ? err.stack : err);
     res.status(500).json({ error: 'internal_error' });
 });
