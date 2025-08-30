@@ -52,10 +52,10 @@ jobs:
             az webapp config container set \
               --name "${{ secrets.AZURE_WEBAPP_NAME }}" \
               --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
-              --docker-custom-image-name "$IMAGE" \
-              --docker-registry-server-url "https://${{ secrets.ACR_LOGIN_SERVER }}" \
-              --docker-registry-server-user "${{ secrets.ACR_USERNAME }}" \
-              --docker-registry-server-password "${{ secrets.ACR_PASSWORD }}"
+              --container-image-name "$IMAGE" \
+              --container-registry-url "https://${{ secrets.ACR_LOGIN_SERVER }}" \
+              --container-registry-user "${{ secrets.ACR_USERNAME }}" \
+              --container-registry-password "${{ secrets.ACR_PASSWORD }}"
             az webapp config appsettings set \
               --name "${{ secrets.AZURE_WEBAPP_NAME }}" \
               --resource-group "${{ secrets.AZURE_RESOURCE_GROUP }}" \
